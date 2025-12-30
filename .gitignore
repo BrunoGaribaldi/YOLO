@@ -1,0 +1,6 @@
+/venv
+/Outputs/*
+/Model/*
+/Processing/*
+.env
+/Scripts/__pycache__/*

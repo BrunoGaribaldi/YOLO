@@ -1,0 +1,1 @@
+#detector de golpes por minuto.
