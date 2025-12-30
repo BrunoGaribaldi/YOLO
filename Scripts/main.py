@@ -4,6 +4,8 @@ import time
 import cv2
 from dotenv import load_dotenv
 import graficador
+import bpm
+import on_off
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
 
@@ -32,12 +34,27 @@ while True:
         detector.detectar()
 
         #graficamos las detecciones.
-        #graficador.graficar()
-    
+        graficador.graficar()
+
+        # Verificar estado ON/OFF del pump jack
+        status_result = on_off.check_pump_jack_status()
+        if status_result: #si el pump jack esta funcionando, calculamos el BPM.
+            print(f"Estado Pump Jack: {status_result['status']} (Confianza: {status_result['confidence']:.0%})")
+
+        
+            # Calculamos el BPM
+            # === Rutas ===
+            # Archivo de entrada desde variables de entorno
+            OUTPUT_FILE = os.getenv("OUTPUTFILE")  # detections.txt
+            frames, ys = bpm.load_points(OUTPUT_FILE)  # esto es medio redundante, podria traer el dato como salida de la funcion detectar().
+
+            bpm_value, dbg = bpm.bpm_cycle(frames, ys, fps, bpm_min=2, bpm_max=20)
+            print("BPM:", bpm_value)
+        
+        else: #si el pump jack no esta funcionando, no calculamos el BPM.
+            print("Pump Jack no esta funcionando")
+            print(f"Estado Pump Jack: {status_result['status']} (Confianza: {status_result['confidence']:.0%})")
+            continue
+
     # Esperar antes de revisar nuevamente
     time.sleep(SLEEP)
-
-
-
-
-
