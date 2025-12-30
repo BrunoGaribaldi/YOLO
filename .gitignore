@@ -1,6 +1,31 @@
-/venv
-/Outputs/*
-/Processing/*
+# Entorno virtual
+/venv/
+venv/
+
+# Modelos (archivos pesados)
+/Model/
+Model/
+*.pt
+*.pth
+*.weights
+
+# Outputs y procesamiento
+/Outputs/
+Outputs/
+/Processing/
+Processing/
+
+# Variables de entorno
 .env
-/Scripts/__pycache__/*
-/home/brunogaribaldi/NQN PETROL/YOLO/Model/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Archivos temporales
+*.log
+*.tmp
+.DS_Store
