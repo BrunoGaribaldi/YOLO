@@ -4,25 +4,25 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from pathlib import Path
-from dotenv import load_dotenv
+
 
 # Cargar variables de entorno
-def graficar():
-    load_dotenv()
-
-    # === Rutas ===
-    # Archivo de entrada desde variables de entorno
-    OUTPUT_FILE = os.getenv("OUTPUTFILE")
-    OUTPUT_PATH = os.getenv("OUTPUTPATH")
-
-    in_path = Path(OUTPUT_FILE)  # detections.txt
-
-    # Archivo de salida (mismo directorio que el de entrada)
-    out_path = Path(OUTPUT_PATH) / "grafico_detecciones.png"
+def graficar(output_file, run_dir):
+    """
+    Grafica las detecciones y guarda en /Output/video/grafico_detecciones.png
+    
+    Args:
+        output_file: Path al archivo detections.txt
+        run_dir: Directorio base del video (/Output/video)
+    """
+    # Archivo de salida: /Output/video/grafico_detecciones.png
+    out_path = Path(run_dir) / "grafico_detecciones.png"
 
     # === Leer el archivo ===
     pairs = []
-    with in_path.open("r", encoding="utf-8") as f:
+    # Aceptar tanto Path como string
+    file_path = Path(output_file) if not isinstance(output_file, Path) else output_file
+    with file_path.open("r", encoding="utf-8") as f:
         for line in f:
             s = line.strip()
             if not s:

@@ -175,12 +175,11 @@ def detect_on_off(detections_path,
         'n_points': len(ys)
     }
 
-def check_pump_jack_status():
+def check_pump_jack_status(OUTPUT_FILE):
     """
     Función principal que carga variables de entorno y detecta el estado.
     """
-    load_dotenv()
-    OUTPUT_FILE = os.getenv("OUTPUTFILE")
+    
     
     if not OUTPUT_FILE:
         print("Error: OUTPUTFILE no está definido en .env")
