@@ -7,8 +7,24 @@ import graficador
 import bpm
 import on_off
 import shutil
+from datetime import datetime
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
+
+
+
+def touch(path):
+    # Crear directorio si no existe
+    dir_path = os.path.dirname(path)
+    if dir_path and not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+    with open(path, "a"):
+        os.utime(path, None)
+
+def unlink(path):
+    # Eliminar archivo si existe, sin error si no existe
+    if os.path.exists(path):
+        os.remove(path)
 
 # Obtener la ruta de procesamiento desde variables de entorno
 PROCESSING_PATH = os.getenv("PROCESSINGPATH")
@@ -22,6 +38,7 @@ while True:
     
     # Si hay archivos en la carpeta, procesarlos
     if files:
+        
         # Detección de FPS del video
         video_path = os.path.join(PROCESSING_PATH, files[0])
         cap = cv2.VideoCapture(video_path)
@@ -31,18 +48,23 @@ while True:
 
         # Obtener nombre del video
         nombre_video = files[0]
-        video_id = os.path.splitext(nombre_video)[0]
+        video_id_base = os.path.splitext(nombre_video)[0]
+        # Agregar timestamp al nombre de la carpeta
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        video_id = f"{video_id_base}_{timestamp}"
         run_dir = os.path.join(OUTPUT_PATH, video_id)  # /Output/video
+        touch(os.path.join(run_dir, "_RUNNING"))
         
         # Crear una instancia de la clase Detection
         detector = detection.Detection()
         
         # Llamar al método detectar() para procesar el video
         # Retorna: run_dir, output_file
-        run_dir_result, output_file = detector.detectar()
+        run_dir_result, output_file = detector.detectar(video_id=video_id)
         
         if run_dir_result is None:
-            # Error en el procesamiento, continuar con siguiente video
+            # Error en el procesamiento, eliminar _RUNNING y continuar con siguiente video
+            unlink(os.path.join(run_dir, "_RUNNING"))
             continue
         
         # Usar el run_dir retornado (por si acaso)
@@ -56,7 +78,7 @@ while True:
         
         # Archivo para guardar resultados BPM y ON/OFF: /Output/video/resultados.txt
         resultados_file = os.path.join(run_dir, "resultados.txt")
-        
+          
         if status_result and status_result.get('status') == 'ON':  # Si el pump jack está funcionando, calculamos el BPM
             print(f"Estado Pump Jack: {status_result['status']} (Confianza: {status_result['confidence']:.0%})")
 
@@ -78,6 +100,9 @@ while True:
                     f.write(f"Número de períodos: {dbg.get('n_periods', 'N/A')}\n")
                 else:
                     f.write("BPM: No se pudo calcular\n")
+            
+            unlink(os.path.join(run_dir, "_RUNNING"))
+            touch(os.path.join(run_dir, "_SUCCESS"))
         
         else:  # Si el pump jack no está funcionando o hay error, no calculamos el BPM
             if status_result:
@@ -92,13 +117,21 @@ while True:
                     f.write(f"Razón: {status_result['reason']}\n")
                     f.write(f"Puntos analizados: {status_result['n_points']}\n\n")
                     f.write("BPM: No calculado (Pump Jack apagado)\n")
+                    
+                unlink(os.path.join(run_dir, "_RUNNING"))
+                touch(os.path.join(run_dir, "_SUCCESS"))
             else:
                 print("Error al verificar estado del Pump Jack")
                 with open(resultados_file, "w") as f:
                     f.write("=== RESULTADOS DEL ANÁLISIS ===\n\n")
                     f.write("Error: No se pudo determinar el estado del Pump Jack\n")
             
+                unlink(os.path.join(run_dir, "_RUNNING"))
+                touch(os.path.join(run_dir, "_SUCCESS"))
             continue
 
     # Esperar antes de revisar nuevamente
     time.sleep(SLEEP)
+
+
+

@@ -15,12 +15,13 @@ class Detection:
         self.OUTPUT_FAIL = os.getenv("OUTPUTFAIL")
         self.COCOPATH = os.getenv("COCOPATH")
 
-    def detectar(self):
+    def detectar(self, video_id=None):
         nombre_video = os.listdir(self.PROCESSING_PATH)[0]
         video_path = os.path.join(self.PROCESSING_PATH, nombre_video)
 
-        # Extraer nombre sin extensión para crear carpeta
-        video_id = os.path.splitext(nombre_video)[0]
+        # Extraer nombre sin extensión para crear carpeta (o usar el proporcionado)
+        if video_id is None:
+            video_id = os.path.splitext(nombre_video)[0]
         run_dir = os.path.join(self.OUTPUT_PATH, video_id)  # /Output/video
         os.makedirs(run_dir, exist_ok=True)
 
